@@ -1,10 +1,6 @@
 SELECT 
-	f.folder_id, 
-	f.[name], 
-	[description] 
+	DISTINCT category
 FROM 
-	[catalog].folders f
-WHERE 
-	EXISTS (SELECT * FROM [catalog].projects p WHERE p.folder_id = f.folder_id)
+	[jobsapp].V_JobsInfo 
 ORDER BY	
-	f.[name]
+	category
