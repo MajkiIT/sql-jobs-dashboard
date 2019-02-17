@@ -23,25 +23,31 @@ with numbers as
 ), executions as 
 (
 	select
-		[created_date] = cast(e.created_time as date),
-		*
+		[created_date] = CAST(STUFF(STUFF(STUFF(cast(run_date as varchar(8))+RIGHT('00000'+cast(run_time as varchar(6)),6),13,0,':'),11,0,':'),9,0,' ') as date),
+		[start_time] = (CAST(STUFF(STUFF(STUFF(cast(run_date as varchar(8))+RIGHT('00000'+cast(run_time as varchar(6)),6),13,0,':'),11,0,':'),9,0,' ') as datetime),
+		[status] = run_status,
+		[execution_id] = instance_id
 	from
-		[catalog].executions e
+		msdb.dbo.sysjobhistory jh
+		inner join msdb.dbo.sysjobs jb
+		on jh.job_id = jb.job_id
+		inner join msdb.dbo.syscategories c
+		on jb.category_id = c.category_id
 	where
-		cast(e.created_time as date) is not null
+		jh.[server] like @folderNamePattern
 	and
-		e.folder_name like @folderNamePattern
+		c.name like @projectNamePattern
 	and
-		e.project_name like @projectNamePattern
+		(jh.[run_status] = @statusFilter or @statusFilter = 0)
 	and
-		(e.[status] = @statusFilter or @statusFilter = 0)
+		jh.step_id = 0
 )
 select
 	c.[calendar_date],
 	created_packages = count(e.execution_id),
 	executed_packages = sum(case when e.start_time is not null then 1 else 0 end),
-	succeeded_packages = sum(case when e.[status] = 7 then 1 else 0 end),
-	failed_packages = sum(case when e.[status] = 4 then 1 else 0 end)
+	succeeded_packages = sum(case when e.[status] = 1 then 1 else 0 end),
+	failed_packages = sum(case when e.[status] = 0 then 1 else 0 end)
 from
 	calendar c 
 left join
