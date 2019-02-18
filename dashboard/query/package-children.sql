@@ -1,54 +1,54 @@
 DECLARE @executionIdFilter BIGINT = ?;
 
-WITH 
-ctePRE AS 
-(
-	SELECT * FROM catalog.event_messages em 
-	WHERE em.event_name IN ('OnPreExecute')
-	
-), 
-ctePOST AS 
-(
-	SELECT * FROM catalog.event_messages em 
-	WHERE em.event_name IN ('OnPostExecute')
-),
-cteFINAL AS
-(
-	SELECT		
-		rn = ROW_NUMBER() OVER (PARTITION BY b.event_message_id ORDER BY e.event_message_id),
-		b.event_message_id,
-		b.message_source_type,
-		b.package_path,
-		b.package_name,
-		b.execution_path,
-		b.message_source_name,
-		pre_message_time = b.message_time,
-		post_message_time = e.message_time
-	FROM
-		ctePRE b
-	LEFT OUTER JOIN
-		ctePOST e ON b.operation_id = e.operation_id AND b.package_name = e.package_name AND b.message_source_id = e.message_source_id AND e.event_message_id > b.event_message_id
-	WHERE
-		b.operation_id = @executionIdFilter
-	AND
-		b.package_path = '\Package'
+;with cte
+  AS
+  (
+  select ROW_NUMBER() over (Partition by Job_id order by instance_id) rn, job_id,instance_id  
+  from msdb.dbo.sysjobhistory jh
+  where step_id = 0
+  ), cte_jobs
+  as
+  (
+	select
+	instance_id,
+	start_time = CAST(STUFF(STUFF(STUFF(cast(run_date as varchar(8))+RIGHT('00000'+cast(run_time as varchar(6)),6),13,0,':'),11,0,':'),9,0,' ') as datetime),
+	run_duration = ((run_duration/1000000)*86400) + (((run_duration-((run_duration/1000000)*1000000))/10000)*3600) + (((run_duration-((run_duration/10000)*10000))/100)*60) + (run_duration-(run_duration/100)*100),
+	run_status,
+	[server],
+	step_name,
+	job_id 
+from msdb.dbo.sysjobhistory
+  ),cte_join
+  AS
+  (
+  select 
+  a.job_id, 
+  b.instance_id lb_instance_id,
+  a.instance_id 
+  from cte a
+  left join cte b
+  on a.rn = b.rn+1 and a.job_id = b.job_id
 )
 SELECT
-	event_message_id,
-	message_source_type,
-	package_name,
-	package_path,
-	execution_path,
-	message_source_name,
-	pre_message_time = format(pre_message_time, 'yyyy-MM-dd HH:mm:ss'),
-	post_message_time = format(post_message_time, 'yyyy-MM-dd HH:mm:ss'),
-	elapsed_time_min = datediff(mi, pre_message_time, post_message_time)
-FROM
-	cteFINAL
-WHERE
-	rn = 1
-AND
-	CHARINDEX('\', execution_path, 2) > 0
-ORDER BY
-	event_message_id desc
-;
+	event_message_id = a.instance_id,
+	message_source_type = 0,
+	package_name = jb.name,
+	package_path = 'Job\'+a.step_name, 
+	execution_path = a.server+'\'+jb.name +'\'+a.step_name,
+	message_source_name = 'SQL AGENT',
+	pre_message_time = format(start_time, 'yyyy-MM-dd HH:mm:ss'),
+	post_message_time = format(dateadd(ss,run_duration,start_time), 'yyyy-MM-dd HH:mm:ss'),
+	elapsed_time_min = run_duration/60
+   from cte_jobs a
+  left join cte_join b
+  on a.instance_id > isnull(lb_instance_id,0) and a.instance_id <= b.instance_id
+  and a.job_id = b.job_id
+  inner join msdb.dbo.sysjobs jb
+  on a.job_id = jb.job_id
+  inner join msdb.dbo.syscategories c
+  on jb.category_id = c.category_id
+  WHERE 
+	b.instance_id <> a.instance_id AND
+	b.instance_id = @executionIdFilter
+	ORDER BY 
+		a.instance_id DESC
