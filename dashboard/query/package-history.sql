@@ -2,40 +2,11 @@ DECLARE @folderNamePattern NVARCHAR(100) = ?;
 DECLARE @projectNamePattern NVARCHAR(100) = ?;
 DECLARE @packageNamePattern NVARCHAR(100) = ?;
 
-;with cte
-  AS
-  (
-  select ROW_NUMBER() over (Partition by Job_id order by instance_id) rn, job_id,instance_id  
-  from msdb.dbo.sysjobhistory jh
-  where step_id = 0
-  ), cte_jobs
-  as
-  (
-	select
-	instance_id,
-	run_date,
-	run_time,
-	run_duration,
-	run_status,
-	[server],
-	step_name,
-	job_id 
-from msdb.dbo.sysjobhistory
-  ),cte_join
-  AS
-  (
-  select 
-  a.job_id, 
-  b.instance_id lb_instance_id,
-  a.instance_id 
-  from cte a
-  left join cte b
-  on a.rn = b.rn+1 and a.job_id = b.job_id
-  ),cte_executions
+;with cte_executions
   as
   (
   select  TOP (50)
-	execution_id = b.instance_id,
+	execution_id = a.instance_id,
 	project_name = c.name,
 	package_name = jb.name,
 	environment_name = '',
@@ -53,16 +24,13 @@ from msdb.dbo.sysjobhistory
 / 60) 
 		OVER (ORDER BY CAST(STUFF(STUFF(STUFF(cast(run_date as varchar(8))+RIGHT('00000'+cast(run_time as varchar(6)),6),13,0,':'),11,0,':'),9,0,' ') as datetime)
 		 ROWS BETWEEN 5 PRECEDING AND CURRENT ROW)
-  from cte_jobs a
-  left join cte_join b
-  on a.instance_id > isnull(lb_instance_id,0) and a.instance_id <= b.instance_id
-  and a.job_id = b.job_id
+  from msdb.dbo.sysjobhistory a
   inner join msdb.dbo.sysjobs jb
   on a.job_id = jb.job_id
   inner join msdb.dbo.syscategories c
   on jb.category_id = c.category_id
   WHERE 
-	b.instance_id = a.instance_id 
+	a.step_id = 0 
   and
 		a.run_status IN (1)
 	AND
@@ -72,7 +40,7 @@ from msdb.dbo.sysjobhistory
 	AND
 		c.category_id LIKE @projectNamePattern
 	ORDER BY 
-		b.instance_id DESC
+		a.instance_id DESC
 		)
 SELECT
 	execution_id, 
