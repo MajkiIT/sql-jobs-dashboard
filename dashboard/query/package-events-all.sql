@@ -32,7 +32,7 @@ from msdb.dbo.sysjobhistory
   )
   (
     select  
-	message_time = CAST( DATEADD(s,run_duration,start_time) as datetime)) AS VARCHAR(100)),
+	message_time = CAST( DATEADD(s,run_duration,start_time) AS VARCHAR(100)),
 	[message],
 	execution_id = b.instance_id,
 	package_name = jb.name,
