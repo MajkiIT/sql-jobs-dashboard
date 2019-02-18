@@ -17,9 +17,8 @@ SET @asOfDate = ISNULL(@asOfDate, SYSDATETIME());
   (
 	select
 	instance_id,
-	run_date,
-	run_time,
-	run_duration,
+	start_time = CAST(STUFF(STUFF(STUFF(cast(run_date as varchar(8))+RIGHT('00000'+cast(run_time as varchar(6)),6),13,0,':'),11,0,':'),9,0,' ') as datetime),
+	run_duration = ((run_duration/1000000)*86400) + (((run_duration-((run_duration/1000000)*1000000))/10000)*3600) + (((run_duration-((run_duration/10000)*10000))/100)*60) + (run_duration-(run_duration/100)*100),
 	run_status,
 	[server],
 	step_name,
@@ -55,8 +54,7 @@ from msdb.dbo.sysjobhistory
 	a.server LIKE @folderNamePattern AND
 	c.name LIKE  @projectNamePattern AND
 	(@executionId = -1 AND 
-	CAST(STUFF(STUFF(STUFF(cast(run_date as varchar(8))+RIGHT('00000'+cast(run_time as varchar(6)),6),13,0,':'),11,0,':'),9,0,' ') as datetime) 
-	>= DATEADD(HOUR, -@hourspan, @asOfDate)) OR (b.instance_id = @executionId)
+	start_time >= DATEADD(HOUR, -@hourspan, @asOfDate)) OR (b.instance_id = @executionId)
   ),
 cteA AS
 (
