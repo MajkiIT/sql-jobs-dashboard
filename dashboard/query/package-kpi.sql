@@ -6,32 +6,77 @@ DECLARE @executionId BIGINT = ?;
 
 SET @asOfDate = ISNULL(@asOfDate, SYSDATETIME());
 
-WITH cteEID as
-(
-	SELECT execution_id FROM [catalog].executions e WHERE 
-	e.folder_name LIKE @folderNamePattern AND
-	e.project_name LIKE @projectNamePattern AND
-	(@executionId = -1 AND e.start_time >= DATEADD(HOUR, -@hourspan, @asOfDate)) OR (e.execution_id = @executionId)
-),
+;with cte
+  AS
+  (
+  select ROW_NUMBER() over (Partition by Job_id order by instance_id) rn, job_id,instance_id  
+  from msdb.dbo.sysjobhistory jh
+  where step_id = 0
+  ), cte_jobs
+  as
+  (
+	select
+	instance_id,
+	run_date,
+	run_time,
+	run_duration,
+	run_status,
+	[server],
+	step_name,
+	job_id 
+from msdb.dbo.sysjobhistory
+  ),cte_join
+  AS
+  (
+  select 
+  a.job_id, 
+  b.instance_id lb_instance_id,
+  a.instance_id 
+  from cte a
+  left join cte b
+  on a.rn = b.rn+1 and a.job_id = b.job_id
+  ),
+  cteEID
+  AS
+  (
+    select  
+	execution_id = b.instance_id,
+	status = run_status
+  from cte_jobs a
+  left join cte_join b
+  on a.instance_id > isnull(lb_instance_id,0) and a.instance_id <= b.instance_id
+  and a.job_id = b.job_id
+  inner join msdb.dbo.sysjobs jb
+  on a.job_id = jb.job_id
+  inner join msdb.dbo.syscategories c
+  on jb.category_id = c.category_id
+  WHERE 
+	b.instance_id <> a.instance_id AND
+	a.server LIKE @folderNamePattern AND
+	c.name LIKE  @projectNamePattern AND
+	(@executionId = -1 AND 
+	CAST(STUFF(STUFF(STUFF(cast(run_date as varchar(8))+RIGHT('00000'+cast(run_time as varchar(6)),6),13,0,':'),11,0,':'),9,0,' ') as datetime) 
+	>= DATEADD(HOUR, -@hourspan, @asOfDate)) OR (b.instance_id = @executionId)
+  ),
 cteA AS
 (
-	SELECT [events] = COUNT(*) FROM [catalog].event_messages em WHERE em.operation_id IN (SELECT c.execution_id FROM cteEID c)
+	SELECT [events] = COUNT(*)  FROM cteEID
 ),
 cteE AS
 (
-	SELECT errors = COUNT(*) FROM [catalog].event_messages em WHERE em.operation_id IN (SELECT c.execution_id FROM cteEID c)  AND em.event_name = 'OnError'
+	SELECT errors = COUNT(*) FROM cteEID where status = 0
 ),
 cteW AS
 (
-	SELECT warnings = COUNT(*) FROM [catalog].event_messages em WHERE em.operation_id IN (SELECT c.execution_id FROM cteEID c) AND em.event_name = 'OnWarning' 
+	SELECT warnings = COUNT(*) FROM cteEID where status = 2 
 ),
 cteDW AS
 (
-	SELECT duplicate_warnings = COUNT(*) FROM [catalog].event_messages em WHERE em.operation_id IN (SELECT c.execution_id FROM cteEID c) AND em.event_name = 'OnWarning' AND [message] LIKE '%duplicate%' 
+	SELECT duplicate_warnings =  COUNT(*) FROM cteEID where status = 3
 ),
 cteMW AS
 (
-	SELECT memory_warnings = COUNT(*) FROM [catalog].event_messages em WHERE em.operation_id IN (SELECT c.execution_id FROM cteEID c) AND em.event_name = 'OnInformation' AND [message] LIKE '%memory allocation%' 
+	SELECT memory_warnings =  COUNT(*) FROM cteEID where status = 4
 )
 SELECT
 	*
