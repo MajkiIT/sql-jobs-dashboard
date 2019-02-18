@@ -1,6 +1,6 @@
-SELECT TOP 1 
+erSELECT TOP 1 
 	folder_id = 1, 
 	[name] = f.Server, 
-	[description] = ''
+	[description] = 'Server'
 FROM 
 	msdb.dbo.sysjobhistory f
