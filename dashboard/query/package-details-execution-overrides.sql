@@ -1,9 +1,8 @@
 declare @executionId bigint = ?;
 
-select 
-	property_path,
-	property_value = cast(property_value as nvarchar(max))
+
+select top (0)
+	property_path = name,
+	property_value = description
 from 
-	[catalog].[execution_property_override_values] 
-where 
-	[execution_id] = @executionId
+	msdb.dbo.sysjobs
