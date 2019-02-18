@@ -17,24 +17,20 @@ class monitor(object):
     }
 
     executable_status_codes = {
-            0: 'success',
-            1: 'failure',
-            2: 'completion',
+            0: 'failed',
+            1: 'succeeded',
+            2: 'retry',
             3: 'cancelled'
+            4: 'in progress'
         }
 
     package_status_codes = {
-            0: 'all',
-            1: 'created',
-            2: 'running',
+            0: 'failed',
+            1: 'succeeded',
+            2: 'retry',
             3: 'cancelled',
-            4: 'failed',
-            5: 'pending',
-            6: 'halted',
-            7: 'succeeded',
-            8: 'stopping',
-            9: 'completed'
-        }
+            4: 'in progress'
+    }
 
     folder_name = all
     project_name = all
