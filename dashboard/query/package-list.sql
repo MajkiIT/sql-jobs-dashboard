@@ -18,9 +18,8 @@ with cte
   (
 	select
 	instance_id,
-	run_date,
-	run_time,
-	run_duration,
+	start_time = CAST(STUFF(STUFF(STUFF(cast(run_date as varchar(8))+RIGHT('00000'+cast(run_time as varchar(6)),6),13,0,':'),11,0,':'),9,0,' ') as datetime),
+	run_duration = ((run_duration/1000000)*86400) + (((run_duration-((run_duration/1000000)*1000000))/10000)*3600) + (((run_duration-((run_duration/10000)*10000))/100)*60) + (run_duration-(run_duration/100)*100),
 	run_status,
 	[server],
 	step_name,
@@ -47,8 +46,8 @@ from msdb.dbo.sysjobhistory
 	project_name = c.name,
 	package_name = jb.name,
 	executable_name = a.step_name,
-	start_time = CAST(STUFF(STUFF(STUFF(cast(run_date as varchar(8))+RIGHT('00000'+cast(run_time as varchar(6)),6),13,0,':'),11,0,':'),9,0,' ') as datetime),
-	end_time = DATEADD(s,run_duration,CAST(STUFF(STUFF(STUFF(cast(run_date as varchar(8))+RIGHT('00000'+cast(run_time as varchar(6)),6),13,0,':'),11,0,':'),9,0,' ') as datetime)),
+	start_time,
+	end_time = DATEADD(s,run_duration,start_time),
 	elapsed_time_min = a.run_duration/60,
 	status = run_status
   from cte_jobs a
