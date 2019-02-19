@@ -6,7 +6,7 @@ DECLARE @projectNamePattern NVARCHAR(100) = ?;
 SET @asOfDate = ISNULL(@asOfDate, SYSDATETIME());
 
 	select
-		[status_code] = run_status,
+		[status_code] = ISNULL(run_status, -1),
 		status_count = COUNT(*)		
 	from
 		msdb.dbo.sysjobhistory jh
