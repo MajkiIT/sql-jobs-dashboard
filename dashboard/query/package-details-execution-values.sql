@@ -1,7 +1,4 @@
 declare @executionId bigint = ?;
-
-declare @executionId bigint = ?;
-
 select 
 	0 object_type,
 	object_type_desc = 'Job',
