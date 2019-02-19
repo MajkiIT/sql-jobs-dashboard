@@ -113,7 +113,7 @@ and
 and
 	e.start_time >= dateadd(hour, -@hourspan, @asOfDate)
 and
-	(e.[status] = @statusFilter or @statusFilter = 0)
+	(e.[status] = @statusFilter or @statusFilter = 5)
 and
 e.execution_id = statistics_id
 order by 
