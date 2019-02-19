@@ -38,7 +38,7 @@ with numbers as
 	and
 		c.name like @projectNamePattern
 	and
-		(jh.[run_status] = @statusFilter or @statusFilter = 0)
+		(jh.[run_status] = @statusFilter or @statusFilter = 5)
 	and
 		jh.step_id = 0
 )
