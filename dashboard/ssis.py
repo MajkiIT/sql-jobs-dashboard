@@ -25,6 +25,7 @@ class monitor(object):
         }
 
     package_status_codes = {
+           -1: 'all jobs',
             0: 'failed',
             1: 'succeeded',
             2: 'retry',
