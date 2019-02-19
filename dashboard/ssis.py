@@ -30,7 +30,7 @@ class monitor(object):
             2: 'retry',
             3: 'cancelled',
             4: 'in progress',
-            5: 'all jobs'
+            5: 'all'
     }
 
     folder_name = all
