@@ -20,7 +20,7 @@ class monitor(object):
             0: 'failed',
             1: 'succeeded',
             2: 'retry',
-            3: 'cancelled'
+            3: 'cancelled',
             4: 'in progress'
         }
 
