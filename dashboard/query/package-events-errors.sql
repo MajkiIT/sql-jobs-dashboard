@@ -1,3 +1,5 @@
+DECLARE @executionId BIGINT = ?;
+
 ;with cte
   AS
   (
