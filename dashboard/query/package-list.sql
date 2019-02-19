@@ -98,7 +98,7 @@ select top (@executionCount)
 	elapsed_time_min = format(datediff(ss, e.start_time, e.end_time) / 60., '#,0.00'),
 	k.warnings,
 	k.errors,
-	logging_level = ''
+	logging_level = 100
 from 
 	cte_executions e 
 
