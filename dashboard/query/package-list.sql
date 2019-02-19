@@ -33,7 +33,7 @@ from msdb.dbo.sysjobhistory
   b.instance_id lb_instance_id,
   a.instance_id 
   from cte a
-  left join cte b
+  inner join cte b
   on a.rn = b.rn+1 and a.job_id = b.job_id
   ),
   cte_executions
