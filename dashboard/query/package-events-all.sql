@@ -30,7 +30,7 @@ from msdb.dbo.sysjobhistory
   left join cte b
   on a.rn = b.rn+1 and a.job_id = b.job_id
   )
-  (
+
     select  
 	message_time = CAST( DATEADD(s,run_duration,start_time) AS VARCHAR(100)),
 	[message],
