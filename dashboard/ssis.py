@@ -21,7 +21,7 @@ class monitor(object):
             1: 'succeeded',
             2: 'retry',
             3: 'cancelled',
-            4: 'in progress'
+            4: 'running'
         }
 
     package_status_codes = {
@@ -29,8 +29,12 @@ class monitor(object):
             1: 'succeeded',
             2: 'retry',
             3: 'cancelled',
-            4: 'in progress',
-            5: 'all'
+            4: 'running',
+            5: 'all',
+            6: 'pending',
+            7: 'halted',
+            8: 'stopping',
+            9: 'completed'
     }
 
     folder_name = all
