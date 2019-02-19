@@ -1,4 +1,4 @@
-erSELECT TOP 1 
+ SELECT TOP 1 
 	folder_id = 1, 
 	[name] = f.Server, 
 	[description] = 'Server'
