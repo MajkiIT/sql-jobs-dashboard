@@ -25,12 +25,12 @@ class monitor(object):
         }
 
     package_status_codes = {
-           -1: 'all jobs',
             0: 'failed',
             1: 'succeeded',
             2: 'retry',
             3: 'cancelled',
-            4: 'in progress'
+            4: 'in progress',
+            5: 'all jobs'
     }
 
     folder_name = all
