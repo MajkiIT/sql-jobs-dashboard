@@ -40,7 +40,8 @@ from msdb.dbo.sysjobhistory
 	start_time = format(start_time,'yyyy-MM-dd HH:mm:ss'),
 	end_time = format(DATEADD(s,run_duration,start_time), 'yyyy-MM-dd HH:mm:ss'),
 	execution_duration_min = a.run_duration/60,
-	execution_duration_sec = a.run_duration
+	execution_duration_sec = a.run_duration,
+	[status] = a.run_status
   from cte_jobs a
   left join cte_join b
   on a.instance_id > isnull(lb_instance_id,0) and a.instance_id <= b.instance_id
