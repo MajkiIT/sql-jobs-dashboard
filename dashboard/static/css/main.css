@@ -11,3 +11,7 @@
 body {
     font-family: 'Roboto', sans-serif;
 }
+
+#server-info {
+    font-size: 30;
+}
