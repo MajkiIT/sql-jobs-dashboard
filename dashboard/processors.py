@@ -48,7 +48,8 @@ def utility_processor():
                 0 : 'failed',
                 1 : 'success',
                 2 : 'warning',
-                3 : 'warning'           
+                3 : 'warning',
+                4 : 'info'
                 }
         return result[status]
     return dict(executable_status_class = executable_status_class)
