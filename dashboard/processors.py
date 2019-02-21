@@ -27,11 +27,11 @@ def utility_processor():
 def utility_processor():
     def package_status_class(status):
         result = {
-                0 : 'default',
-                1 : 'default',
-                2 : 'info',
-                3 : 'danger',
-                4 : 'danger',
+                0 : 'danger',
+                1 : 'success',
+                2 : 'warning',
+                3 : 'warning',
+                4 : 'info',
                 5 : 'default',
                 6 : 'danger',
                 7 : 'success',
@@ -45,10 +45,10 @@ def utility_processor():
 def utility_processor():
     def executable_status_class(status):
         result = {
-                0 : 'success',
-                1 : 'danger',
-                2 : 'default',
-                3 : 'danger'              
+                0 : 'failed',
+                1 : 'success',
+                2 : 'warning',
+                3 : 'warning'           
                 }
         return result[status]
     return dict(executable_status_class = executable_status_class)
