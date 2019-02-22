@@ -9,10 +9,10 @@ SET @asOfDate = ISNULL(@asOfDate, SYSDATETIME());
 		[status_code] = ISNULL(run_status, 5),
 		status_count = COUNT(*)		
 	from
-		msdb.dbo.sysjobhistory jh
-		inner join msdb.dbo.sysjobs jb
+		msdb.dbo.sysjobhistory jh (nolock)
+		inner join msdb.dbo.sysjobs jb (nolock)
 		on jh.job_id = jb.job_id
-		inner join msdb.dbo.syscategories c
+		inner join msdb.dbo.syscategories c (nolock)
 		on jb.category_id = c.category_id
 	where
 		jh.[server] like @folderNamePattern
