@@ -28,7 +28,7 @@ with numbers as
 		[status] = run_status,
 		[execution_id] = instance_id
 	from
-		msdb.dbo.sysjobhistory jh
+		msdb.dbo.sysjobhistory jh (nolock)
 		inner join msdb.dbo.sysjobs jb
 		on jh.job_id = jb.job_id
 		inner join msdb.dbo.syscategories c
