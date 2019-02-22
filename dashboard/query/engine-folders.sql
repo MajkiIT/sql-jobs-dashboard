@@ -3,4 +3,4 @@
 	[name] = f.Server, 
 	[description] = 'Server'
 FROM 
-	msdb.dbo.sysjobhistory f
+	msdb.dbo.sysjobhistory f (nolock)
