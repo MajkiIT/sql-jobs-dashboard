@@ -6,10 +6,10 @@ DECLARE @executionId BIGINT = ?;
 		package_name = jb.name,
 		project_lsn = 0
 	from
-		msdb.dbo.sysjobhistory jh
-		inner join msdb.dbo.sysjobs jb
+		msdb.dbo.sysjobhistory jh (nolock)
+		inner join msdb.dbo.sysjobs jb (nolock)
 		on jh.job_id = jb.job_id
-		inner join msdb.dbo.syscategories c
+		inner join msdb.dbo.syscategories c (nolock)
 		on jb.category_id = c.category_id
 	where
 		jh.step_id = 0
