@@ -17,7 +17,7 @@ DECLARE @executionIdFilter BIGINT = ?;
 	[server],
 	step_name,
 	job_id 
-from msdb.dbo.sysjobhistory
+from msdb.dbo.sysjobhistory (nolock)
   ),cte_join
   AS
   (
