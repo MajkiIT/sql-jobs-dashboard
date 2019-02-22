@@ -4,7 +4,7 @@ DECLARE @executionIdFilter BIGINT = ?;
   AS
   (
   select ROW_NUMBER() over (Partition by Job_id order by instance_id) rn, job_id,instance_id  
-  from msdb.dbo.sysjobhistory jh
+  from msdb.dbo.sysjobhistory jh (nolock)
   where step_id = 0
   ), cte_jobs
   as
