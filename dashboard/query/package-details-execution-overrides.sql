@@ -5,4 +5,4 @@ select top (0)
 	property_path = name,
 	property_value = description
 from 
-	msdb.dbo.sysjobs
+	msdb.dbo.sysjobs (nolock)
