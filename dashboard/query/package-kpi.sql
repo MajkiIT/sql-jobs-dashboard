@@ -10,7 +10,7 @@ SET @asOfDate = ISNULL(@asOfDate, SYSDATETIME());
   AS
   (
   select ROW_NUMBER() over (Partition by Job_id order by instance_id) rn, job_id,instance_id  
-  from msdb.dbo.sysjobhistory jh
+  from msdb.dbo.sysjobhistory jh (nolock)
   where step_id = 0
   ), cte_jobs
   as
@@ -23,7 +23,7 @@ SET @asOfDate = ISNULL(@asOfDate, SYSDATETIME());
 	[server],
 	step_name,
 	job_id 
-from msdb.dbo.sysjobhistory
+from msdb.dbo.sysjobhistory (nolock)
   ),cte_join
   AS
   (
@@ -45,9 +45,9 @@ from msdb.dbo.sysjobhistory
   left join cte_join b
   on a.instance_id > isnull(lb_instance_id,0) and a.instance_id <= b.instance_id
   and a.job_id = b.job_id
-  inner join msdb.dbo.sysjobs jb
+  inner join msdb.dbo.sysjobs jb (nolock)
   on a.job_id = jb.job_id
-  inner join msdb.dbo.syscategories c
+  inner join msdb.dbo.syscategories c (nolock)
   on jb.category_id = c.category_id
   WHERE 
 	b.instance_id <> a.instance_id AND
