@@ -6,11 +6,11 @@ as
 	[name] = f.Server, 
 	[description] = 'Server'
 FROM 
-	msdb.dbo.sysjobhistory f
+	msdb.dbo.sysjobhistory f (nolock)
 )
 select f.*, 
 c.category_id,
 c.name,
 description = 'Job Category' 
 from folders f
-cross join msdb.dbo.syscategories c
+cross join msdb.dbo.syscategories c (nolock)
