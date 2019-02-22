@@ -24,10 +24,10 @@ DECLARE @packageNamePattern NVARCHAR(100) = ?;
 / 60) 
 		OVER (ORDER BY CAST(STUFF(STUFF(STUFF(cast(run_date as varchar(8))+RIGHT('00000'+cast(run_time as varchar(6)),6),13,0,':'),11,0,':'),9,0,' ') as datetime)
 		 ROWS BETWEEN 5 PRECEDING AND CURRENT ROW)
-  from msdb.dbo.sysjobhistory a
-  inner join msdb.dbo.sysjobs jb
+  from msdb.dbo.sysjobhistory a (nolock)
+  inner join msdb.dbo.sysjobs jb (nolock)
   on a.job_id = jb.job_id
-  inner join msdb.dbo.syscategories c
+  inner join msdb.dbo.syscategories c (nolock)
   on jb.category_id = c.category_id
   WHERE 
 	a.step_id = 0 
