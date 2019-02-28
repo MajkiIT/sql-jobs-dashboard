@@ -7,13 +7,7 @@ DECLARE @executionCount INT = ?;
 
 SET @asOfDate = ISNULL(@asOfDate, SYSDATETIME());
 
-with cte
-  AS
-  (
-  select ROW_NUMBER() over (Partition by Job_id order by instance_id) rn, job_id,instance_id  
-  from msdb.dbo.sysjobhistory jh (nolock)
-  where step_id = 0
-  ), cte_jobs
+;with cte_jobs_a
   as
   (
 	select
@@ -25,42 +19,31 @@ with cte
 	step_name,
 	job_id 
 from msdb.dbo.sysjobhistory (nolock)
-  ),cte_join
-  AS
-  (
-  select 
-  a.job_id, 
-  b.instance_id lb_instance_id,
-  a.instance_id 
-  from cte a
-  inner join cte b
-  on a.rn = b.rn+1 and a.job_id = b.job_id
-  ),
+)
+  ,
   cte_executions
   AS
   (
-    select  
-	statistics_id = a.instance_id,
-	execution_id = b.instance_id,
+select 
+	statistics_id = t.instance_id,
+	execution_id = t2.instance_id,
 	folder_name = [server],
 	project_name = c.name,
 	package_name = jb.name,
-	executable_name = a.step_name,
+	executable_name = t.step_name,
 	start_time,
 	end_time = DATEADD(s,run_duration,start_time),
-	elapsed_time_min = a.run_duration/60,
+	elapsed_time_min = t.run_duration/60,
 	status = run_status
-  from cte_jobs a
-  left join cte_join b
-  on a.instance_id > isnull(lb_instance_id,0) and a.instance_id <= b.instance_id
-  and a.job_id = b.job_id
+from cte_jobs_a t
+ cross apply 
+ (select top 1 instance_id from  msdb.dbo.sysjobhistory (nolock) where step_id = 0 and instance_id>=t.instance_id
+ and job_id = t.job_id order by instance_id) as t2
   inner join msdb.dbo.sysjobs jb (nolock)
-  on a.job_id = jb.job_id
+  on t.job_id = jb.job_id
   inner join msdb.dbo.syscategories c (nolock)
   on jb.category_id = c.category_id
- -- WHERE 
-	--b.instance_id <> a.instance_id 
-  ),
+ ),
   cteWE as
 (
 	select 
@@ -104,8 +87,6 @@ from
 
 left outer join
 	cteKPI k on e.execution_id = k.operation_id
---left outer join
---	cteLoglevel l on e.execution_id = l.execution_id
 where 
 	e.folder_name like @folderNamePattern
 and
