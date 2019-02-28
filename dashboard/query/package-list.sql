@@ -68,7 +68,34 @@ cteKPI as
 			sum(event_count) for event_name in ([0], [2])
 		) p
 )
-
+select *
+from
+(
+select 
+	execution_id = 2147483647-ROW_NUMBER() over (order by start_execution_date desc), 
+	project_name = c.name,
+	package_name = jb.name,
+	project_lsn = 0,
+	environment = '',
+	status = 4, 
+	start_time = format(t.start_execution_date, 'yyyy-MM-dd HH:mm:ss'),
+	end_time = null,
+	elapsed_time_min = format(datediff(mi,t.start_execution_date,getdate()), '#,0.00'),
+	warnings = null,
+	errors = null,
+	logging_level = 100
+from [msdb].[dbo].[sysjobactivity] t
+  inner join msdb.dbo.sysjobs jb (nolock)
+  on t.job_id = jb.job_id
+  inner join msdb.dbo.syscategories c (nolock)
+  on jb.category_id = c.category_id
+  inner join msdb.dbo.sysjobsteps s (nolock)
+  on t.job_id = s.job_id and isnull(t.last_executed_step_id,0)+1 = s.step_id
+  inner join msdb.sys.servers srv
+  on jb.originating_server_id = srv.server_id
+where start_execution_date is not null and job_history_id is null
+and srv.name like @folderNamePattern
+union all
 select top (@executionCount)
 	e.execution_id, 
 	e.project_name,
@@ -84,19 +111,17 @@ select top (@executionCount)
 	logging_level = 100
 from 
 	cte_executions e 
-
 left outer join
 	cteKPI k on e.execution_id = k.operation_id
+where e.execution_id = statistics_id and e.folder_name like @folderNamePattern
+) e
+
 where 
-	e.folder_name like @folderNamePattern
-and
 	e.project_name like @projectNamePattern
 and
 	e.start_time >= dateadd(hour, -@hourspan, @asOfDate)
 and
 	(e.[status] = @statusFilter or @statusFilter = 5)
-and
-e.execution_id = statistics_id
 order by 
 	e.execution_id desc
 option
