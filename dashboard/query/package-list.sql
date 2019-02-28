@@ -89,8 +89,8 @@ from [msdb].[dbo].[sysjobactivity] t
   on t.job_id = jb.job_id
   inner join msdb.dbo.syscategories c (nolock)
   on jb.category_id = c.category_id
-  inner join msdb.dbo.sysjobsteps s (nolock)
-  on t.job_id = s.job_id and isnull(t.last_executed_step_id,0)+1 = s.step_id
+--  inner join msdb.dbo.sysjobsteps s (nolock)
+--  on t.job_id = s.job_id and isnull(t.last_executed_step_id,0)+1 = s.step_id
   inner join msdb.sys.servers srv
   on jb.originating_server_id = srv.server_id
 where start_execution_date is not null and job_history_id is null
