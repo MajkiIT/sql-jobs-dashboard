@@ -68,7 +68,7 @@ cteKPI as
 			sum(event_count) for event_name in ([0], [2])
 		) p
 )
-select *
+select top (@executionCount) *
 from
 (
 select 
@@ -96,7 +96,7 @@ from [msdb].[dbo].[sysjobactivity] t
 where start_execution_date is not null and job_history_id is null
 and srv.name like @folderNamePattern
 union all
-select top (@executionCount)
+select 
 	e.execution_id, 
 	e.project_name,
 	e.package_name,
